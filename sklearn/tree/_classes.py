@@ -11,6 +11,7 @@ randomized trees. Single and multi-output problems are both handled.
 #          Joly Arnaud <arnaud.v.joly@gmail.com>
 #          Fares Hedayati <fares.hedayati@gmail.com>
 #          Nelson Liu <nelson@nelsonliu.me>
+#          Haoyin Xu <haoyinxu@gmail.com>
 #
 # License: BSD 3 clause
 
@@ -140,7 +141,19 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         return self.tree_.n_leaves
 
     def fit(self, X, y, sample_weight=None, check_input=True,
-            X_idx_sorted="deprecated"):
+            X_idx_sorted="deprecated", store_data=False,
+            update_tree=False):
+
+        if update_tree:
+            try:
+                X = np.append(self.X_, X, axis=0)
+                y = np.append(self.y_, y, axis=0)
+            except NameError:
+                raise ValueError("There is no existing tree")
+
+        if store_data:
+            self.X_ = X
+            self.y_ = y
 
         random_state = check_random_state(self.random_state)
 
@@ -778,6 +791,14 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
         :ref:`sphx_glr_auto_examples_tree_plot_unveil_tree_structure.py`
         for basic usage of these attributes.
 
+    X_ : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The training input samples. Internally, it will be converted to
+        ``dtype=np.float32`` and if a sparse matrix is provided
+        to a sparse ``csc_matrix``.
+
+    y_ : array-like of shape (n_samples,) or (n_samples, n_outputs)
+        The target values (class labels) as integers or strings.
+
     See Also
     --------
     DecisionTreeRegressor : A decision tree regressor.
@@ -853,7 +874,8 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
             ccp_alpha=ccp_alpha)
 
     def fit(self, X, y, sample_weight=None, check_input=True,
-            X_idx_sorted="deprecated"):
+            X_idx_sorted="deprecated", store_data=False,
+            update_tree=False):
         """Build a decision tree classifier from the training set (X, y).
 
         Parameters
@@ -883,6 +905,12 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
 
             .. deprecated :: 0.24
 
+        store_data : bool, default=False
+            Choice of saving the training samples
+
+        update_tree : bool, default=False
+            Choice of updating the existing tree or creating a new one.
+
         Returns
         -------
         self : DecisionTreeClassifier
@@ -893,7 +921,9 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
             X, y,
             sample_weight=sample_weight,
             check_input=check_input,
-            X_idx_sorted=X_idx_sorted)
+            X_idx_sorted=X_idx_sorted,
+            store_data=store_data,
+            update_tree=update_tree)
         return self
 
     def predict_proba(self, X, check_input=True):
@@ -1134,6 +1164,14 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
         :ref:`sphx_glr_auto_examples_tree_plot_unveil_tree_structure.py`
         for basic usage of these attributes.
 
+    X_ : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The training input samples. Internally, it will be converted to
+        ``dtype=np.float32`` and if a sparse matrix is provided
+        to a sparse ``csc_matrix``.
+
+    y_ : array-like of shape (n_samples,) or (n_samples, n_outputs)
+        The target values (class labels) as integers or strings.
+
     See Also
     --------
     DecisionTreeClassifier : A decision tree classifier.
@@ -1202,7 +1240,8 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
             ccp_alpha=ccp_alpha)
 
     def fit(self, X, y, sample_weight=None, check_input=True,
-            X_idx_sorted="deprecated"):
+            X_idx_sorted="deprecated", store_data=False,
+            update_tree=False):
         """Build a decision tree regressor from the training set (X, y).
 
         Parameters
@@ -1231,6 +1270,12 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
 
             .. deprecated :: 0.24
 
+        store_data : bool, default=False
+            Choice of saving the training samples
+
+        update_tree : bool, default=False
+            Choice of updating the existing tree or creating a new one.
+
         Returns
         -------
         self : DecisionTreeRegressor
@@ -1241,7 +1286,9 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
             X, y,
             sample_weight=sample_weight,
             check_input=check_input,
-            X_idx_sorted=X_idx_sorted)
+            X_idx_sorted=X_idx_sorted,
+            store_data=store_data,
+            update_tree=update_tree)
         return self
 
     def _compute_partial_dependence_recursion(self, grid, target_features):
