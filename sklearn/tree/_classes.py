@@ -144,16 +144,24 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
             X_idx_sorted="deprecated", store_data=False,
             update_tree=False):
 
+        # Update the existing tree if previous data available
         if update_tree:
             try:
                 X = np.append(self.X_, X, axis=0)
                 y = np.append(self.y_, y, axis=0)
-            except NameError:
-                raise ValueError("There is no existing tree")
+            except AttributeError:
+                print("There is no existing tree")
 
+        # Store the training samples or remove previous ones
         if store_data:
             self.X_ = X
             self.y_ = y
+        else:
+            try:
+                del self.X_
+                del self.y_
+            except AttributeError:
+                pass
 
         random_state = check_random_state(self.random_state)
 
